@@ -1,17 +1,24 @@
 <template>
   <message :msg="msg" v-show="msg" />
-  <Form
-    :form="exibirform"
-    @closemodal="exibirform = false"
+  <Form 
+    :form="exibirformNew"
+    @closemodal="exibirformNew = false"
     @get-produtos="GetProdutos"
   />
+  <Form 
+    :form="exibirFormEdit"
+    @closemodal="exibirFormEdit = false"
+    @get-produtos="GetProdutos"
+    :Buscar="FormProduto"
+    :Editar="EditForm"
+  />  
   <div id="botao-novo">
     <div>
       <v-btn
         id="botao"
         icon="mdi-plus"
         size="large"
-        @click="exibirform = true"
+        @click="exibirformNew = true"
       ></v-btn>
     </div>
   </div>
@@ -36,7 +43,7 @@
           id="botao-editar"
           icon="mdi-triangle"
           size="small"
-          @click="exibirform = true"
+          @click="exibirFormEdit = true; BuscarProdutos(product.id); EditForm=true"
         ></v-btn>
         <v-btn
           id="botao-excluir"
@@ -65,7 +72,8 @@ export default {
       produtos: [],
       produto_id: null,
       msg: null,
-      exibirform: false,
+      exibirformNew: false,
+      exibirFormEdit: false,
       FormProduto: {
         id: null,
         cod_empresa: null,
@@ -74,6 +82,7 @@ export default {
         unidade: null,
         familia: null,
       },
+      EditForm: false
     };
   },
   methods: {
@@ -119,21 +128,17 @@ export default {
       const config = {
         method: "GET",
         url: `http://localhost:9000/buscar/${id}`,
-        data: {
-          id: this.FormProduto.id,
-          cod_empresa: this.FormProduto.cod_empresa,
-          codigo_interno: this.FormProduto.codigo_interno,
-          nome: this.FormProduto.nome,
-          unidade: this.FormProduto.unidade,
-          familia: this.FormProduto.familia,
-        },
       };
-
       axios(config)
         .then((res) => {
             if(res.status == 200){
-               this.FormProduto = res.data 
+               this.FormProduto = res.data[0]
+
             }
+        })
+        .catch((error) => {
+          alert("Erro ao tentar recuperar os registros");
+          console.log(error);
         });
     },
   },

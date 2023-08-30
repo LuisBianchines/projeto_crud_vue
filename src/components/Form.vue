@@ -1,4 +1,5 @@
 <template>
+  <message :msg="msg" v-show="msg" />
   <v-row justify="center">
     <v-dialog v-model="dialog" persistent width="1024">
       <template> </template>
@@ -13,7 +14,7 @@
                 <v-text-field
                   label="Código Interno"
                   required
-                  v-model="valores.cod_interno"
+                  v-model="valores.cod_interno" 
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6" md="8">
@@ -36,7 +37,7 @@
                 <v-text-field
                   label="Família"
                   hint="Digite a família do produto"
-                  v-model="valores.familia"
+                  v-model="valores.familia"                 
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -49,20 +50,27 @@
             variant="text"
             @click="
               dialog = false;
-              this.$emit('closemodal');
-            "
+              this.$emit('closemodal')"
           >
             Fechar
           </v-btn>
-          <v-btn
+          <v-btn v-if="Edit == true"
+            color="#08c4bc"
+            variant="text"
+            @click="
+              dialog = false;
+              UpdateProduct(valores.id)
+              this.$emit('closemodal')"
+          >
+            Salvar
+          </v-btn>
+          <v-btn v-else
             color="#08c4bc"
             variant="text"
             @click="
               dialog = false;
               NewProduct();
-              this;
-              $emit('closemodal');
-            "
+              this.$emit('closemodal')"
           >
             Salvar
           </v-btn>
@@ -74,11 +82,17 @@
 
 <script>
 import axios from "axios";
+import message from "./Message.vue";
 
 export default {
   name: "form",
+  components: {
+    message
+  },
   props: {
     form: Boolean,
+    Buscar: Object,
+    Editar: Boolean
   },
 
   emits: ["closemodal", "GetProdutos"],
@@ -87,16 +101,27 @@ export default {
     form(newvalue) {
       this.dialog = newvalue;
     },
+
+    Buscar(newvalue) {    
+      this.valores.id =  newvalue.id
+      this.valores.cod_empresa = newvalue.cod_empresa
+      this.valores.cod_interno = newvalue.codigo_interno
+      this.valores.nome = newvalue.nome
+      this.valores.un = newvalue.unidade
+      this.valores.familia = newvalue.familia     
+    },
+    
+    Editar(newvalue){
+      this.Edit = newvalue;
+    }
   },
 
   data() {
     return {
       dialog: false,
-      cod_interno: null,
-      nome: null,
-      familia: null,
-      unidade: null,
       valores: {},
+      Edit: false,
+      msg: null
     };
   },
 
@@ -113,7 +138,7 @@ export default {
         },
       };
       axios(config)
-        .then((res) => {
+        .then((res) => {       
           this.valores = res.data;
           this.$emit("GetProdutos");
 
@@ -124,6 +149,29 @@ export default {
           alert(error.response.data);
         });
     },
+
+    UpdateProduct(id){
+      const config = {
+        method: "PUT",
+        url: `http://localhost:9000/update/${id}`,
+        data: {
+          codigo_interno: this.valores.cod_interno,
+          nome: this.valores.nome,
+          familia: this.valores.familia,
+          unidade: this.valores.un,
+        },
+      };
+      axios(config)
+        .then((res) => {
+          this.valores = res.data;
+          this.$emit("GetProdutos");
+
+        })
+        .catch((error) => {
+          console.error(error);
+          alert(error.response.data);
+        });    
+    }
 
   },
 };
